@@ -25,7 +25,11 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? "Server=(localdb)\\mssqllocaldb;Database=InventoryManagementDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True";
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString, b => b.MigrationsAssembly("InventoryManagement.Repository")));
+    options.UseSqlServer(connectionString, b =>
+    {
+        b.MigrationsAssembly("InventoryManagement.Repository");
+        b.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(10), errorNumbersToAdd: null);
+    }));
 
 // 2. HTTP Context & Multi-Tenancy Providers
 builder.Services.AddHttpContextAccessor();
@@ -120,20 +124,32 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
-
-// 8. DB Seeding on Startup
+// 8. DB Seeding on Startup (with retry for SQL Server readiness)
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    try
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var retryAttempts = 10;
+    var delay = TimeSpan.FromSeconds(5);
+
+    for (int attempt = 1; attempt <= retryAttempts; attempt++)
     {
-        var context = services.GetRequiredService<ApplicationDbContext>();
-        DbInitializer.Seed(context);
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
+        try
+        {
+            var context = services.GetRequiredService<ApplicationDbContext>();
+            DbInitializer.Seed(context);
+            logger.LogInformation("Database seeding completed successfully.");
+            break;
+        }
+        catch (Exception ex) when (attempt < retryAttempts)
+        {
+            logger.LogWarning(ex, "Database seeding failed (attempt {Attempt}/{MaxAttempts}). Retrying in {Delay} seconds...", attempt, retryAttempts, delay.TotalSeconds);
+            Thread.Sleep(delay);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Database seeding failed after {MaxAttempts} attempts.", retryAttempts);
+        }
     }
 }
 
