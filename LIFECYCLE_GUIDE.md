@@ -895,6 +895,31 @@ kubectl logs -n jenkins <pod-name> -c jenkins
 kubectl logs -n jenkins <pod-name> -c dind
 ```
 
+### Monitoring (Phase 6)
+
+```powershell
+# Add Helm repo (one-time)
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+# Install monitoring stack
+kubectl create namespace monitoring
+helm install prometheus-stack prometheus-community/kube-prometheus-stack `
+  --namespace monitoring `
+  -f k8s/monitoring/values.yaml
+
+# Get Grafana LoadBalancer URL
+kubectl get svc -n monitoring prometheus-stack-grafana
+
+# View monitoring pods
+kubectl get pods -n monitoring -w
+kubectl get pods -n monitoring -o wide
+
+# Uninstall
+helm uninstall prometheus-stack --namespace monitoring
+kubectl delete namespace monitoring
+```
+
 ### Docker
 
 ```powershell
@@ -914,4 +939,24 @@ docker image prune -a
 
 ---
 
-> **Last updated:** Phase 5 complete. Full CI/CD pipeline is operational.
+### ✅ Phase 6 (Complete)
+
+| Action | Done? |
+|---|---|
+| Destroy: `helm uninstall prometheus-stack --namespace monitoring` | ☐ |
+| Destroy: `kubectl delete namespace monitoring` | ☐ |
+| Recreate: Install Helm CLI (`winget install Helm.Helm`) | ☐ |
+| Recreate: Create `k8s/monitoring/values.yaml` (custom settings for tools node, resource limits, LoadBalancer) | ☐ |
+| Recreate: `helm repo add prometheus-community https://prometheus-community.github.io/helm-charts` | ☐ |
+| Recreate: `helm repo update` | ☐ |
+| Recreate: `kubectl create namespace monitoring` | ☐ |
+| Recreate: `helm install prometheus-stack prometheus-community/kube-prometheus-stack --namespace monitoring -f k8s/monitoring/values.yaml` | ☐ |
+| Recreate: Verify pods are Running: `kubectl get pods -n monitoring -w` | ☐ |
+| Recreate: Get Grafana URL: `kubectl get svc -n monitoring prometheus-stack-grafana` | ☐ |
+| Recreate: Login to Grafana (`admin` / `admin`) | ☐ |
+| Recreate: Open "Kubernetes / Compute Resources / Node (Pods)" dashboard | ☐ |
+| Recreate: In the `Node` dropdown, select the production node (`ip-10-0-20-140`) | ☐ |
+| Recreate: Verify CPU/Memory bar charts show pods as % of node capacity | ☐ |
+| Recreate: Open "Kubernetes / Compute Resources / Namespace (Pods)" and filter by `production` | ☐ |
+
+> **Last updated:** Phase 6 complete. Prometheus + Grafana monitoring is operational.

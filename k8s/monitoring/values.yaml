@@ -1,0 +1,25 @@
+prometheus:
+  prometheusSpec:
+    nodeSelector:
+      role: tools
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "200m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+
+grafana:
+  nodeSelector:
+    role: tools
+  adminPassword: "admin"
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "250m"
+  service:
+    type: LoadBalancer
