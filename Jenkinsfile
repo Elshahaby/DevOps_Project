@@ -19,7 +19,7 @@ pipeline {
         stage('Build Backend') {
             steps {
                 script {
-                    docker.image('mcr.microsoft.com/dotnet/sdk:8.0').inside('-e DOTNET_CLI_HOME=/tmp/dotnet') {
+                    docker.image('mcr.microsoft.com/dotnet/sdk:9.0').inside('-e DOTNET_CLI_HOME=/tmp/dotnet') {
                         dir('Backend') {
                             sh 'dotnet restore InventoryManagement.slnx'
                             sh 'dotnet build InventoryManagement.slnx --no-restore -c Release'
@@ -32,7 +32,7 @@ pipeline {
         stage('Test Backend') {
             steps {
                 script {
-                    docker.image('mcr.microsoft.com/dotnet/sdk:8.0').inside('-e DOTNET_CLI_HOME=/tmp/dotnet') {
+                    docker.image('mcr.microsoft.com/dotnet/sdk:9.0').inside('-e DOTNET_CLI_HOME=/tmp/dotnet') {
                         dir('Backend') {
                             sh '''
                                 if ls *.Tests/*.csproj 2>/dev/null; then
