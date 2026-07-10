@@ -237,6 +237,9 @@ kubectl label node ip-10-0-XX-XX.ec2.internal role=tools
 
 # Label the other as production (for app pods)
 kubectl label node ip-10-0-YY-YY.ec2.internal role=production
+
+kubectl get nodes --show-labels
+kubectl get nodes -L role
 ```
 
 > Use the actual node names from `kubectl get nodes`. Pick **one** for tools, the other for production.

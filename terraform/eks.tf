@@ -116,16 +116,7 @@ resource "aws_eks_node_group" "main" {
 resource "aws_launch_template" "eks_nodes" {
   name_prefix   = "${var.project_name}-node-template-"
 
-  # We'll use kubelet extra args to label nodes
-  # Node 1 (tools) and Node 2 (production) will be distinguished by
-  # their availability zone or we can apply labels after joining.
-  # For simplicity, user data will set the node label.
-  # user_data = base64encode(<<-EOF
-    #!/bin/bash
-    # The node labels will be applied via Kubernetes after joining the cluster
-    # using kubectl label nodes. This is handled in the Jenkins setup.
-  #  EOF
-  # )
+  vpc_security_group_ids = [aws_security_group.eks_nodes.id]
 
   tag_specifications {
     resource_type = "instance"

@@ -163,6 +163,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
+app.MapGet("/health", () => Results.Ok("healthy"));
+app.MapGet("/ready", () => Results.Ok("ready"));
 
 var uploadsPath = Path.Combine(app.Environment.ContentRootPath, "uploads");
 if (!Directory.Exists(uploadsPath))

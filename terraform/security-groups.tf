@@ -58,6 +58,15 @@ resource "aws_vpc_security_group_ingress_rule" "nodes_to_nodes" {
   ip_protocol                  = "-1"
 }
 
+# Allow nodes to register with the cluster API (kubelet → API server on port 443)
+resource "aws_vpc_security_group_ingress_rule" "cluster_from_nodes" {
+  security_group_id            = aws_security_group.eks_cluster.id
+  referenced_security_group_id = aws_security_group.eks_nodes.id
+  from_port                    = 443
+  to_port                      = 443
+  ip_protocol                  = "tcp"
+}
+
 # Security group for RDS SQL Server
 resource "aws_security_group" "rds" {
   name        = "${var.project_name}-rds-sg"
